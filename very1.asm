@@ -83,3 +83,79 @@ compare_strings:
 not_equal:
     mov cl, 1                ; 设置比较结果为1（不同）
     ret
+; 处理命令
+process_command:
+    lea si, [inputCmd + 1]  ; 用户输入的命令
+    cmp si, 'echo'
+    je echo_command
+    cmp si, 'help'
+    je help_command
+    cmp si, 'shutdown'
+    je shutdown_command
+    jmp unknown_command
+
+echo_command:
+    mov dx, offset inputCmd + 1
+    call print_msg
+    jmp command_prompt
+
+help_command:
+    mov dx, offset helpMsg
+    call print_msg
+    jmp command_prompt
+
+shutdown_command:
+    mov dx, offset shutdownMsg
+    call print_msg
+    ; 关机模拟
+    mov ah, 4Ch
+    int 21h
+
+unknown_command:
+    mov dx, offset unknownCmdMsg
+    call print_msg
+    jmp command_prompt
+
+command_prompt:
+    ; 显示提示符
+    mov dx, offset prompt
+    call print_msg
+
+    ; 读取用户输入的命令
+    call read_input
+
+    ; 处理命令
+    call process_command
+
+done:
+    ; 退出程序
+    mov ah, 4Ch
+    int 21h
+
+; 消息和提示符
+prompt db '请输入命令: $'
+
+; 程序入口点
+start:
+    ; 显示提示
+    mov dx, offset userPrompt
+    call print_msg
+
+    ; 读取用户名
+    call read_input
+
+    ; 显示提示
+    mov dx, offset passPrompt
+    call print_msg
+
+    ; 读取密码
+    call read_input
+
+    ; 验证用户名和密码
+    call verify_user_pass
+
+    ; 进入命令提示符循环
+    jmp command_prompt
+
+userPrompt db '请输入用户名: $'
+passPrompt db '请输入密码: $'
